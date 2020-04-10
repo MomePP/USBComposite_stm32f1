@@ -319,3 +319,24 @@ uint16_t HIDReporter::getOutput(uint8_t* out, uint8_t poll) {
     return usb_hid_get_data(HID_REPORT_TYPE_OUTPUT, reportID, out, poll);
 }
 
+uint32 HIDReporter::available(void) {
+    return usb_hid_data_available();
+}
+
+uint32 HIDReporter::readByte(void) {
+    uint32 p;
+    this->readBytes(&p, 1);
+    return p;
+}
+
+uint32 HIDReporter::readBytes(void *buf, uint32 len) {
+    if (!buf)
+        return 0;
+
+    uint32 rxed = 0;
+    while (rxed < len) {
+        rxed += usb_hid_rx((uint8*)buf + rxed, len - rxed);
+    }
+
+    return rxed;
+}

@@ -135,9 +135,10 @@ typedef struct
 
 uint32 usb_hid_tx(const uint8* buf, uint32 len);
 uint32 usb_hid_tx_mod(const uint8* buf, uint32 len);
+uint32 usb_hid_rx(uint8* buf, uint32 len);
 
 uint32 usb_hid_data_available(void); /* in RX buffer */
-
+uint32 usb_hid_peek(uint8* buf, uint32 len);
 
 #ifdef __cplusplus
 }

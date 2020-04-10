@@ -389,6 +389,9 @@ class HIDReporter {
         uint16_t getData(uint8_t type, uint8_t* out, uint8_t poll=1); // type = HID_REPORT_TYPE_FEATURE or HID_REPORT_TYPE_OUTPUT
         void setFeature(uint8_t* feature);
         void registerProfile(bool always=true);
+        uint32 available(void);
+        uint32 readByte(void);
+        uint32 readBytes(void *buf, uint32_t len);
 };
 
 //================================================================================

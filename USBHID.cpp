@@ -32,6 +32,7 @@
  */
 
 bool USBHID::init(USBHID* me) {
+    usb_hid_setRXEPSize(me->rxPacketSize);
     usb_hid_setTXEPSize(me->txPacketSize);
     
     HIDReporter* r = me->profiles;

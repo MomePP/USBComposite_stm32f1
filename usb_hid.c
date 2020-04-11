@@ -150,6 +150,13 @@ static USBEndpointInfo hidEndpoints[NUM_HID_ENDPOINTS] = {
     }
 };
 
+void usb_hid_setRXEPSize(uint32_t size) {
+    if (size == 0 || size > 64)
+        size = 64;
+    hidEndpoints[HID_ENDPOINT_RX].pmaSize = size;
+    rxEPSize = size;
+}
+
 void usb_hid_setTXEPSize(uint32_t size) {
     if (size == 0 || size > 64)
         size = 64;
@@ -335,21 +342,6 @@ void usb_hid_set_buffers(uint8 type, volatile HIDBuffer_t* bufs, int n) {
  * Copies up to len bytes from our private data buffer (*NOT* the PMA)
  * into buf and deq's the FIFO. */
 uint32 usb_hid_rx(uint8* buf, uint32 len) {
-    // /* Copy bytes to buffer. */
-    // uint32 n_copied = usb_hid_peek(buf, len);
-
-    // /* Mark bytes as read. */
-    // n_unread_bytes -= n_copied;
-    // rx_offset += n_copied;
-
-    // /* If all bytes have been read, re-enable the RX endpoint, which
-    //  * was set to NAK when the current batch of bytes was received. */
-    // if (n_unread_bytes == 0) {
-    //     usb_generic_enable_rx(USB_HID_RX_ENDPOINT_INFO);
-    //     rx_offset = 0;
-    // }
-    // return n_copied;
-
     /* Copy bytes to buffer. */
     uint32 n_copied = usb_hid_peek(buf, len);
 
@@ -394,20 +386,6 @@ uint32 usb_hid_data_available(void) {
 }
 
 static void hidDataRxCb(void) {
-    // usb_generic_pause_rx(USB_HID_RX_ENDPOINT_INFO);
-    // n_unread_bytes = usb_get_ep_rx_count(USB_HID_RX_ENDP);
-    // /* This copy won't overwrite unread bytes, since we've set the RX
-    //  * endpoint to NAK, and will only set it to VALID when all bytes
-    //  * have been read. */
-    
-    // usb_copy_from_pma_ptr((uint8*)hidBufferRx, n_unread_bytes * 4,
-    //                   USB_HID_RX_PMA_PTR);
-    
-    // if (n_unread_bytes == 0) {
-    //     usb_set_ep_rx_count(USB_HID_RX_ENDP, rxEPSize);
-    //     usb_generic_enable_rx(USB_HID_RX_ENDPOINT_INFO);
-    //     rx_offset = 0;
-    // }
     uint32 head = hid_rx_head;
     usb_generic_read_to_circular_buffer(USB_HID_RX_ENDPOINT_INFO,
                             hidBufferRx, HID_RX_BUFFER_SIZE, &head);

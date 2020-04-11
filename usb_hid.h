@@ -77,6 +77,7 @@ uint8_t usb_hid_add_buffer(uint8_t type, volatile HIDBuffer_t* buf);
 void usb_hid_set_buffers(uint8_t type, volatile HIDBuffer_t* featureBuffers, int count);    
 uint16_t usb_hid_get_data(uint8_t type, uint8_t reportID, uint8_t* out, uint8_t poll);
 void usb_hid_set_feature(uint8_t reportID, uint8_t* data);
+void usb_hid_setRXEPSize(uint32_t size); 
 void usb_hid_setTXEPSize(uint32_t size); 
 uint32 usb_hid_get_pending(void);
 

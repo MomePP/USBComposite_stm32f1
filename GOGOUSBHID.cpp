@@ -20,7 +20,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <libmaple/nvic.h>
-#include "usb_hid.h"
+#include "gogo_usb_hid.h"
 #include "usb_composite_serial.h"
 #include "usb_generic.h"
 #include <libmaple/usb.h>
@@ -31,20 +31,21 @@
  * USB HID interface
  */
 
-bool USBHID::init(USBHID* me) {
-    usb_hid_setTXEPSize(me->txPacketSize);
+bool GOGOUSBHID::init(GOGOUSBHID* me) {
+    gogo_usb_hid_setRXEPSize(me->rxPacketSize);
+    gogo_usb_hid_setTXEPSize(me->txPacketSize);
     
-    HIDReporter* r = me->profiles;
+    GoGoHIDReporter* r = me->profiles;
     
     if (me->baseChunk.data != NULL) {
-        /* user set an explicit report for USBHID */
+        /* user set an explicit report for GOGOUSBHID */
         while (r != NULL) {
             r->reportID = r->userSuppliedReportID;
             if (r->reportID != 0)
                 r->reportBuffer[0] = r->reportID;
             r = r->next;
         }
-        usb_hid_set_report_descriptor(&(me->baseChunk));
+        gogo_usb_hid_set_report_descriptor(&(me->baseChunk));
     }
     else {
         uint8 reportID = HID_AUTO_REPORT_ID_START;
@@ -60,23 +61,23 @@ bool USBHID::init(USBHID* me) {
             
             r = r->next;
         }
-        usb_hid_set_report_descriptor(me->chunkList);
+        gogo_usb_hid_set_report_descriptor(me->chunkList);
     }
 
 	return true;
 }
 
-bool USBHID::registerComponent() {
-	return USBComposite.add(&usbHIDPart, this, (USBPartInitializer)&USBHID::init);
+bool GOGOUSBHID::registerComponent() {
+	return USBComposite.add(&usbGoGoHIDPart, this, (USBPartInitializer)&GOGOUSBHID::init);
 }
 
-void USBHID::setReportDescriptor(const uint8_t* report_descriptor, uint16_t report_descriptor_length) {
+void GOGOUSBHID::setReportDescriptor(const uint8_t* report_descriptor, uint16_t report_descriptor_length) {
     baseChunk.dataLength = report_descriptor_length;
     baseChunk.data = report_descriptor;
     baseChunk.next = NULL;
 }
 
-void USBHID::clear() {
+void GOGOUSBHID::clear() {
     clearBuffers();
     baseChunk.data = NULL;
     baseChunk.dataLength = 0;
@@ -85,7 +86,7 @@ void USBHID::clear() {
     profiles = NULL;
 }
 
-void USBHID::addReport(HIDReporter* r, bool always) {
+void GOGOUSBHID::addReport(GoGoHIDReporter* r, bool always) {
     if (! always && ! autoRegister)
         return;
     
@@ -94,7 +95,7 @@ void USBHID::addReport(HIDReporter* r, bool always) {
         profiles = r;
     }
     else {
-        HIDReporter* tail = profiles;
+        GoGoHIDReporter* tail = profiles;
         while (tail != r && tail->next != NULL) {
             tail = tail->next;
         }
@@ -122,14 +123,15 @@ void USBHID::addReport(HIDReporter* r, bool always) {
     chunkTail->next = NULL;
 }
 
-void USBHID::setReportDescriptor(const HIDReportDescriptor* report) {
+void GOGOUSBHID::setReportDescriptor(const HIDReportDescriptor* report) {
     if (report == NULL)
         setReportDescriptor(NULL, 0);
     else
         setReportDescriptor(report->descriptor, report->length);
 }
 
-void USBHID::begin(const uint8_t* report_descriptor, uint16_t report_descriptor_length) {            
+void GOGOUSBHID::begin(const uint8_t* report_descriptor, uint16_t report_descriptor_length) {
+            
 	if (enabledHID)
 		return;
 	
@@ -143,41 +145,38 @@ void USBHID::begin(const uint8_t* report_descriptor, uint16_t report_descriptor_
 	enabledHID = true;
 }
 
-void USBHID::begin(const HIDReportDescriptor* report) {
+void GOGOUSBHID::begin(const HIDReportDescriptor* report) {
     if (report == NULL)
         begin(NULL, 0);
     else
         begin(report->descriptor, report->length);
 }
 
-void USBHID::setBuffers(uint8_t type, volatile HIDBuffer_t* fb, int count) {
-    usb_hid_set_buffers(type, fb, count);
+void GOGOUSBHID::setBuffers(uint8_t type, volatile HIDBuffer_t* fb, int count) {
+    gogo_usb_hid_set_buffers(type, (GoGoHIDBuffer_t*)fb, count);
 }
 
-bool USBHID::addBuffer(uint8_t type, volatile HIDBuffer_t* buffer) {
-    return 0 != usb_hid_add_buffer(type, buffer);
+bool GOGOUSBHID::addBuffer(uint8_t type, volatile HIDBuffer_t* buffer) {
+    return 0 != gogo_usb_hid_add_buffer(type, (GoGoHIDBuffer_t*)buffer);
 }
 
-void USBHID::clearBuffers(uint8_t type) {
-	usb_hid_clear_buffers(type);
+void GOGOUSBHID::clearBuffers(uint8_t type) {
+	gogo_usb_hid_clear_buffers(type);
 }
 
-void USBHID::clearBuffers() {
+void GOGOUSBHID::clearBuffers() {
 	clearBuffers(HID_REPORT_TYPE_OUTPUT);
 	clearBuffers(HID_REPORT_TYPE_FEATURE);
 }
 
-void USBHID::end(void){
+void GOGOUSBHID::end(void){
 	if(enabledHID) {
 		USBComposite.end();
 		enabledHID = false;
 	}
 }
 
-void USBHID::begin(USBCompositeSerial serial, const uint8_t* report_descriptor, uint16_t report_descriptor_length) {	
-	if (enabledHID)
-		return;
-	
+void GOGOUSBHID::begin(USBCompositeSerial serial, const uint8_t* report_descriptor, uint16_t report_descriptor_length) {	
 	USBComposite.clear();
 
 	setReportDescriptor(report_descriptor, report_descriptor_length);
@@ -188,29 +187,31 @@ void USBHID::begin(USBCompositeSerial serial, const uint8_t* report_descriptor, 
 	USBComposite.begin();
 }
 		
-void USBHID::begin(USBCompositeSerial serial, const HIDReportDescriptor* report) {
-    if (report == NULL)
-        begin(serial, NULL, 0);
-    else
-        begin(serial, report->descriptor, report->length);
+void GOGOUSBHID::begin(USBCompositeSerial serial, const HIDReportDescriptor* report) {
+    begin(serial, report->descriptor, report->length);
 }
 
-void HIDReporter::sendReport() {
+void GoGoHIDReporter::sendReport() {
+//    while (usb_is_transmitting() != 0) {
+//    }
+
     unsigned toSend = bufferSize;
     uint8* b = reportBuffer;
-    
+
     while (toSend) {
-        unsigned delta = usb_hid_tx(b, toSend);
+        unsigned delta = gogo_usb_hid_tx(b, toSend);
         toSend -= delta;
         b += delta;
     }
     
+//    while (usb_is_transmitting() != 0) {
+//    }
+
     /* flush out to avoid having the pc wait for more data */
-    /* TODO: remove? this does nothing right now! */
-    usb_hid_tx(NULL, 0);
+    gogo_usb_hid_tx(NULL, 0);
 }
 
-void HIDReporter::registerProfile(bool always) {
+void GoGoHIDReporter::registerProfile(bool always) {
     for (uint32 i=0; i<3; i++) {
         reportChunks[i].data = NULL;
         reportChunks[i].dataLength = 0;
@@ -254,7 +255,7 @@ void HIDReporter::registerProfile(bool always) {
     HID.addReport(this, always);
 }
         
-HIDReporter::HIDReporter(USBHID& _HID, const HIDReportDescriptor* r, uint8_t* _buffer, unsigned _size, uint8_t _reportID, bool forceReportID) : HID(_HID) {
+GoGoHIDReporter::GoGoHIDReporter(GOGOUSBHID& _HID, const HIDReportDescriptor* r, uint8_t* _buffer, unsigned _size, uint8_t _reportID, bool forceReportID) : HID(_HID) {
     if (r != NULL) {
         memcpy(&reportDescriptor, r, sizeof(reportDescriptor));
     }
@@ -285,7 +286,7 @@ HIDReporter::HIDReporter(USBHID& _HID, const HIDReportDescriptor* r, uint8_t* _b
     registerProfile(false);
 }
 
-HIDReporter::HIDReporter(USBHID& _HID, const HIDReportDescriptor* r, uint8_t* _buffer, unsigned _size) : HID(_HID) {
+GoGoHIDReporter::GoGoHIDReporter(GOGOUSBHID& _HID, const HIDReportDescriptor* r, uint8_t* _buffer, unsigned _size) : HID(_HID) {
     if (r != NULL) {
         memcpy(&reportDescriptor, r, sizeof(reportDescriptor));
     }
@@ -303,19 +304,40 @@ HIDReporter::HIDReporter(USBHID& _HID, const HIDReportDescriptor* r, uint8_t* _b
     registerProfile(false);
 }
 
-void HIDReporter::setFeature(uint8_t* in) {
-    return usb_hid_set_feature(reportID, in);
+void GoGoHIDReporter::setFeature(uint8_t* in) {
+    return gogo_usb_hid_set_feature(reportID, in);
 }
 
-uint16_t HIDReporter::getData(uint8_t type, uint8_t* out, uint8_t poll) {
-    return usb_hid_get_data(type, reportID, out, poll);
+uint16_t GoGoHIDReporter::getData(uint8_t type, uint8_t* out, uint8_t poll) {
+    return gogo_usb_hid_get_data(type, reportID, out, poll);
 }
 
-uint16_t HIDReporter::getFeature(uint8_t* out, uint8_t poll) {
-    return usb_hid_get_data(HID_REPORT_TYPE_FEATURE, reportID, out, poll);
+uint16_t GoGoHIDReporter::getFeature(uint8_t* out, uint8_t poll) {
+    return gogo_usb_hid_get_data(HID_REPORT_TYPE_FEATURE, reportID, out, poll);
 }
 
-uint16_t HIDReporter::getOutput(uint8_t* out, uint8_t poll) {
-    return usb_hid_get_data(HID_REPORT_TYPE_OUTPUT, reportID, out, poll);
+uint16_t GoGoHIDReporter::getOutput(uint8_t* out, uint8_t poll) {
+    return gogo_usb_hid_get_data(HID_REPORT_TYPE_OUTPUT, reportID, out, poll);
 }
 
+uint32 GoGoHIDReporter::available(void) {
+    return gogo_usb_hid_data_available();
+}
+
+uint32 GoGoHIDReporter::readByte(void) {
+    uint32 p;
+    this->readBytes(&p, 1);
+    return p;
+}
+
+uint32 GoGoHIDReporter::readBytes(void *buf, uint32 len) {
+    if (!buf)
+        return 0;
+
+    uint32 rxed = 0;
+    while (rxed < len) {
+        rxed += gogo_usb_hid_rx((uint8*)buf + rxed, len - rxed);
+    }
+
+    return rxed;
+}

@@ -315,7 +315,6 @@ class USBHID {
 private:
     bool autoRegister = true;
 	bool enabledHID = false;
-    uint32 rxPacketSize = 64;
     uint32 txPacketSize = 64;
     struct usb_chunk* chunkList;
     // baseChunk holds any explicitly specified report descriptor that
@@ -352,9 +351,6 @@ public:
         setBuffers(HID_REPORT_TYPE_OUTPUT, fb, count);
     }     
     void end(void);
-    void setRXPacketSize(uint32 size=64) {
-        rxPacketSize = size;
-    }
     void setTXPacketSize(uint32 size=64) {
         txPacketSize = size;
     }
@@ -393,9 +389,6 @@ class HIDReporter {
         uint16_t getData(uint8_t type, uint8_t* out, uint8_t poll=1); // type = HID_REPORT_TYPE_FEATURE or HID_REPORT_TYPE_OUTPUT
         void setFeature(uint8_t* feature);
         void registerProfile(bool always=true);
-        uint32 available(void);
-        uint32 readByte(void);
-        uint32 readBytes(void *buf, uint32_t len);
 };
 
 //================================================================================

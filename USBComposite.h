@@ -58,6 +58,7 @@ extern USBCompositeDevice USBComposite;
 
 #include <USBCompositeSerial.h>
 #include <USBHID.h>
+#include <GOGOUSBHID.h>
 #include <USBMassStorage.h>
 #include <USBMIDI.h>
 #include <USBAudio.h>

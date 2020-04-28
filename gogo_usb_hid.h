@@ -31,8 +31,8 @@
  * IMPORTANT: this API is unstable, and may change without notice.
  */
 
-#ifndef _USB_HID_H_
-#define _USB_HID_H_
+#ifndef _GOGO_USB_HID_H_
+#define _GOGO_USB_HID_H_
 
 #include <libmaple/libmaple_types.h>
 #include <libmaple/usb.h>
@@ -49,53 +49,54 @@
 #define HID_BUFFER_UNREAD   USB_CONTROL_DONE
 #define HID_BUFFER_READ     2
 
-extern USBCompositePart usbHIDPart;
+extern USBCompositePart usbGoGoHIDPart;
 
-typedef struct HIDBuffer_t {
+typedef struct GoGoHIDBuffer_t {
     volatile uint8_t* buffer; // use HID_BUFFER_ALLOCATE_SIZE() to calculate amount of memory to allocate                            
     uint16_t bufferSize; // this should match HID_BUFFER_SIZE
     uint8_t  reportID;
     uint8_t  mode;
     uint8_t  state; // HID_BUFFER_EMPTY, etc.
 #ifdef __cplusplus
-    inline HIDBuffer_t(volatile uint8_t* _buffer=NULL, uint16_t _bufferSize=0, uint8_t _reportID=0, uint8_t _mode=0) {
+    inline GoGoHIDBuffer_t(volatile uint8_t* _buffer=NULL, uint16_t _bufferSize=0, uint8_t _reportID=0, uint8_t _mode=0) {
         reportID = _reportID;
         buffer = _buffer;
         bufferSize = _bufferSize;
         mode = _mode;
     }
 #endif
-} HIDBuffer_t;
+} GoGoHIDBuffer_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void usb_hid_set_report_descriptor(struct usb_chunk* chunks);
-void usb_hid_clear_buffers(uint8_t type);
-uint8_t usb_hid_add_buffer(uint8_t type, volatile HIDBuffer_t* buf);
-void usb_hid_set_buffers(uint8_t type, volatile HIDBuffer_t* featureBuffers, int count);    
-uint16_t usb_hid_get_data(uint8_t type, uint8_t reportID, uint8_t* out, uint8_t poll);
-void usb_hid_set_feature(uint8_t reportID, uint8_t* data);
-void usb_hid_setTXEPSize(uint32_t size); 
-uint32 usb_hid_get_pending(void);
+void gogo_usb_hid_set_report_descriptor(struct usb_chunk* chunks);
+void gogo_usb_hid_clear_buffers(uint8_t type);
+uint8_t gogo_usb_hid_add_buffer(uint8_t type, volatile GoGoHIDBuffer_t* buf);
+void gogo_usb_hid_set_buffers(uint8_t type, volatile GoGoHIDBuffer_t* featureBuffers, int count);    
+uint16_t gogo_usb_hid_get_data(uint8_t type, uint8_t reportID, uint8_t* out, uint8_t poll);
+void gogo_usb_hid_set_feature(uint8_t reportID, uint8_t* data);
+void gogo_usb_hid_setRXEPSize(uint32_t size); 
+void gogo_usb_hid_setTXEPSize(uint32_t size); 
+uint32 gogo_usb_hid_get_pending(void);
 
 /*
  * HID Requests
  */
 
-typedef enum _HID_REQUESTS
-{
+// typedef enum _GOGO_HID_REQUESTS
+// {
  
-  GET_REPORT = 1,
-  GET_IDLE,
-  GET_PROTOCOL,
+//   GET_REPORT = 1,
+//   GET_IDLE,
+//   GET_PROTOCOL,
  
-  SET_REPORT = 9,
-  SET_IDLE,
-  SET_PROTOCOL
+//   SET_REPORT = 9,
+//   SET_IDLE,
+//   SET_PROTOCOL
  
-} HID_REQUESTS;
+// } GOGO_HID_REQUESTS;
  
 #define HID_REPORT_TYPE_INPUT         0x01
 #define HID_REPORT_TYPE_OUTPUT        0x02
@@ -123,7 +124,7 @@ typedef struct
 	uint8_t	desctype;		// 0x22 report
 	uint8_t	descLenL;
 	uint8_t	descLenH;
-} HIDDescriptor;
+} GoGoHIDDescriptor;
 
 
 #define USB_INTERFACE_CLASS_HID           0x03
@@ -133,11 +134,12 @@ typedef struct
  * HID interface
  */
 
-uint32 usb_hid_tx(const uint8* buf, uint32 len);
-uint32 usb_hid_tx_mod(const uint8* buf, uint32 len);
+uint32 gogo_usb_hid_tx(const uint8* buf, uint32 len);
+uint32 gogo_usb_hid_tx_mod(const uint8* buf, uint32 len);
+uint32 gogo_usb_hid_rx(uint8* buf, uint32 len);
 
-uint32 usb_hid_data_available(void); /* in RX buffer */
-
+uint32 gogo_usb_hid_data_available(void); /* in RX buffer */
+uint32 gogo_usb_hid_peek(uint8* buf, uint32 len);
 
 #ifdef __cplusplus
 }
